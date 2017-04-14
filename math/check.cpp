@@ -1,5 +1,7 @@
 #include <fstream>
 #include <iostream>
+#include <random>
+#include <chrono>
 
 #define i64 long long
 using namespace std;
@@ -8,15 +10,17 @@ using namespace std;
 class Graph{
    public:
    
-   int n;
-   
-   int* data;
-  
-   int* edgeMap; 
-   
-   Graph(){ this->n = 0; data = nullptr; edgeMap = nullptr;}
-   
-   initByN(int n){
+   int n;        // number of vertices
+   int* data;    // adj matrix
+   int* edgeMap; // edge numbers: 0,..., C(n,2)-1
+   ///////////////////////////////////////////////
+   Graph(){ 
+      this->n = 0; 
+      data = nullptr; 
+      edgeMap = nullptr;
+   }
+   ///////////////////////////////////////////////
+   void initByN(int n){
       this->n = n; 
       this->data = new int[n * n]; 
       this->edgeMap = new int[(n * (n - 1))/2]; 
@@ -29,11 +33,47 @@ class Graph{
             e++;
          }   
    }
-   
+   ///////////////////////////////////////////////
    Graph(int n){ 
-      initByN(int n);
+      initByN(n);
    }
-   
+   ///////////////////////////////////////////////
+   Graph(mt19937_64& gen, int n, int M){ // random GnM
+      initByN(n);
+      //cout << __LINE__ << endl;
+      int Cn2 = n * (n - 1) / 2;
+      int* temp = new int[Cn2];
+     
+      for(int i=0;i<Cn2;i++)
+        temp[i] = i;
+
+      //cout << __LINE__ << endl;
+
+      uniform_int_distribution<int> rnde(0,Cn2-1);
+      
+      for(int i=0;i<M;i++){
+        int rn = rnde(gen);
+        int t = temp[i];
+        temp[i] = temp[rn];
+        temp[rn] = t;
+        //cout << "-->" << temp[i] << endl;
+      }
+
+
+      
+      for(int i = 0; i < M; i++)   
+         data[ edgeMap[ temp[ i ] ] ] = 1;  
+     
+      //cout << __LINE__ << endl;
+     
+      for(int i=0;i<n;i++)   
+         for(int j = i+1;j < n;j++) {           
+            data[ j * n + i ] = data[ i * n + j ];            
+         }       
+         
+      delete[] temp;   
+    }  
+   ///////////////////////////////////////////////
    Graph(string fname){
       ifstream fin(fname.c_str());
       int n;
@@ -45,25 +85,40 @@ class Graph{
 
       fin.close();
    }
-   
-   int edgIdx(int edge){
-      
-   
-   
-   
-   
-   }
-   
-   ~Graph() {delete[] data;}
+ 
+   ///////////////////////////////////////////////
+ 
+   friend ostream& operator<<(ostream& out, Graph& gr);
+ 
+   ~Graph() { delete[] data; }
 };
 
-////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////
+
+ostream& operator<<(ostream& out, Graph& gr){
+   int n = gr.n;
+   for (int i=0;i<n;i++){
+     for (int j=0;j<n;j++)
+        out << gr.data[i*n+j] << " ";
+     out << endl;    
+   }
+   return out;  
+}
+
 
 char getBit(i64 num, int bt){
 
     i64 sel = static_cast<i64>(1) << bt;
     if (num & sel) return 1;
     else return 0;
+
+}
+////////////////////////////////////////////
+int numBits(i64 num, int n){ // returns sum of lowest n bits
+    int sum = 0; 
+    for(int i=0;i<n;i++)
+       sum += getBit(num,i);
+    return sum;
 
 }
 
@@ -74,12 +129,13 @@ int check4Subgraphs(Graph& gr, int minDeg){
    int n = gr.n;
    int* graph = gr.data; 
    i64 subs = 0;
-   i64 nsubs = (static_cast<i64>(1) << n);//-1;
-   cout << "Subs " << nsubs << endl;
-   cout << "n " << n << endl;
-
+   i64 nsubs = (static_cast<i64>(1) << n) - 1;
+   //cout << "Subs " << nsubs << endl;
+   //cout << "n " << n << endl;
+   int minSubgr = n + 1;
    for (i64 ii = 1; ii < nsubs; ii++){
-     int mins = n+1;
+     int mins = n+1; // min v. degree in subgraph
+     int numVerts = numBits(ii,n); // number of verts in the subgraph
      for (int i = 0; i < n; i++){
         if (!getBit(ii, i)) continue;
         int sumj = 0;
@@ -92,10 +148,12 @@ int check4Subgraphs(Graph& gr, int minDeg){
           if (mins < minDeg) break;
         }        
      }
-     if (mins>=minDeg) {
+     if (mins >= minDeg) {
        subs = ii; 
-       cout << subs << endl;
-       break;
+       if(minSubgr > numVerts) 
+          minSubgr = numVerts;
+       cout << subs << " verts -> " << numVerts << endl;
+       //break;
      }  
    }  
    
@@ -103,7 +161,7 @@ int check4Subgraphs(Graph& gr, int minDeg){
    for (int i=0;i<n;i++) 
      lenSub += getBit(subs, i);
    
-   return lenSub;   
+   return minSubgr;   
    
 }
 
@@ -111,9 +169,23 @@ int check4Subgraphs(Graph& gr, int minDeg){
 
 int main(){
 
-  Graph gr("g11.dat");
-    
-  cout << "lenSub " << check4Subgraphs(gr, 3) << endl;  
+  //Graph gr("gr10.dat");
+  //cout << check4Subgraphs(gr, 3) << endl;
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 
+  mt19937_64 gen(seed);
+  int n = 7;
+  int M = 2 * n - 1;
+  int maxSub = 0;
+  for (int i = 0;i < 10;i++){
+     Graph gr(gen,n,M);
+//      cout << gr << endl;  
+     int csub = check4Subgraphs(gr, 3);
+     if (csub>maxSub){
+         maxSub = csub;
+         cout << gr << "i -> " << i << " Max --> " << maxSub << endl;
+     }    
+
+  }
+  
 }
-
