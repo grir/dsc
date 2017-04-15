@@ -152,7 +152,85 @@ int check4Subgraphs(Graph& gr, int minDeg){
        subs = ii; 
        if(minSubgr > numVerts) 
           minSubgr = numVerts;
-       cout << subs << " verts -> " << numVerts << endl;
+       //cout << subs << " verts -> " << numVerts << endl;
+       //break;
+     }  
+   }  
+   
+   int lenSub = 0;
+   for (int i=0;i<n;i++) 
+     lenSub += getBit(subs, i);
+   
+   return minSubgr;   
+   
+}
+const int MIL = 1<<20;
+
+int bitSums[MIL];
+
+void setBitSums(){
+   for(int num = 0;num<MIL;num++){
+      int nnum = num;
+      int sum = 0;
+      while (nnum>0){
+        sum += nnum & 0x01;
+        nnum >>= 1;
+      }
+      bitSums[num] = sum;
+   }
+}
+////////////////////////////////////////////////////////////////
+int getBitSum(i64 num){
+   if (num < MIL) return bitSums[(int)num];
+   int sum = 0;
+   while (num > 0){
+      sum += bitSums[num & (MIL-1)];
+      num /= MIL;
+   }
+   return sum;
+}
+
+int check4SubgraphsF(Graph& gr, int minDeg){
+   
+   int n = gr.n;
+   int* graphD = gr.data; 
+   i64  graph[n];
+   for(int i=0;i<n;i++){
+      graph[i] = 0;
+      i64 mul=1;
+      for(int j=0;j<n;j++){
+        graph[i] += mul * graphD[i*n+j];
+        mul = mul << 1;
+      }
+   }
+     
+   i64 subs = 0;
+   i64 nsubs = (static_cast<i64>(1) << n) - 1;
+   //cout << "Subs " << nsubs << endl;
+   //cout << "n " << n << endl;
+   int minSubgr = n + 1;
+   for (i64 ii = 1; ii < nsubs; ii++){
+     int mins = n+1; // min v. degree in subgraph
+     //int numVerts = numBits(ii,n); // number of verts in the subgraph
+     int numVerts = getBitSum(ii & nsubs); // number of verts in the subgraph
+     
+     for (int i = 0; i < n; i++){
+        if (!getBit(ii, i)) continue;
+        int sumj = getBitSum(graph[i] & ii);
+        //for (int j = 0;j < n;j++){
+        //   if (!getBit(ii, j)) continue;
+        //   sumj += graph[i * n + j];
+        //}
+        if (sumj < mins) {
+          mins = sumj;            
+          if (mins < minDeg) break;
+        }        
+     }
+     if (mins >= minDeg) {
+       subs = ii; 
+       if(minSubgr > numVerts) 
+          minSubgr = numVerts;
+       //cout << subs << " verts -> " << numVerts << endl;
        //break;
      }  
    }  
@@ -172,19 +250,22 @@ int main(){
   //Graph gr("gr10.dat");
   //cout << check4Subgraphs(gr, 3) << endl;
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-
+  
   mt19937_64 gen(seed);
-  int n = 7;
+  setBitSums();
+  cout << "Sums done " << endl;
+  int n = 10;
   int M = 2 * n - 1;
   int maxSub = 0;
-  for (int i = 0;i < 10;i++){
+  for (int i = 0;i < 1000000;i++){
      Graph gr(gen,n,M);
 //      cout << gr << endl;  
-     int csub = check4Subgraphs(gr, 3);
-     if (csub>maxSub){
+     int csub = check4SubgraphsF(gr, 3);
+     if (csub > maxSub){
          maxSub = csub;
          cout << gr << "i -> " << i << " Max --> " << maxSub << endl;
      }    
+     if (i % 5000 == 0) cout << " ----> " << i << endl;
 
   }
   
