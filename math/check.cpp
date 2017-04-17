@@ -214,7 +214,7 @@ int check4SubgraphsF(Graph& gr, int minDeg){
         mul = mul << 1;
       }
    }
-     
+   Graph subgr(n);  
    i64 subs = 0;
    i64 nsubs = (static_cast<i64>(1) << n) - 1;
    //cout << "Subs " << nsubs << endl;
@@ -246,6 +246,7 @@ int check4SubgraphsF(Graph& gr, int minDeg){
      }
      if (mins >= minDeg) {
        subs = ii; 
+       gr.deepCopy(subgr);
        if(minSubgr > numVerts) 
           minSubgr = numVerts;
        //cout << subs << " verts -> " << numVerts << endl;
@@ -255,7 +256,7 @@ int check4SubgraphsF(Graph& gr, int minDeg){
    }  
    
    
-   
+   cout << subgr << subs << endl;
    return minSubgr;   
    
 }
@@ -300,6 +301,20 @@ void  updateDegrees(int* graph, vector<int>& degs){
 } 
 
 ///////////////////////////////////////////////////////
+i64 toInt64(vector<bool>& v){
+   //int n = v.size();	
+   i64 res = 0;
+   i64 twos = 1; 
+   for(auto a : v){
+      res = res  + (int) a * twos;
+      twos <<= 1;
+   }   
+   return res;
+}
+
+
+///////////////////////////////////////////////////////
+
 
 int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg){
    
@@ -318,7 +333,8 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg){
      for(int j = 0; j < n; j++)
         degrees[ i ] += graph[i * n + j];
    }
-   
+   i64 subs = 0;
+   Graph subgr(n);
    while ( true ){
       vector<int> minList;
       getMins(degrees, avaible, minList);
@@ -332,8 +348,11 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg){
       int v = minList[vidx];
       
       // update min subgraph:
-      if ((degrees[ v ] >= minDeg) && (numAvaible < minSubgr))
+      if ((degrees[ v ] >= minDeg) && (numAvaible < minSubgr)){
          minSubgr = numAvaible;
+         subs = toInt64(avaible);
+         gr.deepCopy(subgr);
+      }   
       
       // remove from data the vertex v:
       remove(graph, n, v);
@@ -345,7 +364,8 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg){
       updateDegrees(graph, degrees); 
       
    }
-
+   cout << subgr << " " << subs << endl; 
+   
    return minSubgr;   
    
 }
@@ -362,11 +382,11 @@ int main(){
   mt19937_64 gen(seed);
   setBitSums();
   cout << "Sums done " << endl;
-  int n = 20;
+  int n = 6;
   int M = 2 * n - 1;
-  int maxSub = 0;
+  //int maxSub = 0;
   int opt = 0;
-  int numIter = 10001;
+  int numIter = 30;
   int devs = 0;
   for (int i = 0; i < numIter; i++){
      Graph gr(gen,n,M);
@@ -378,13 +398,13 @@ int main(){
      
   //   if (csub > maxSub){
   //       maxSub = csub;
-  //   cout << "i :" << i << " Exact --> " << csub 
-//          << " heuristic --> " << csubx << endl;
+     cout << "i :" << i << " Exact --> " << csub 
+          << " heuristic --> " << csubx << endl;
        devs += (csubx - csub);
        if (csub == csubx)   opt++;
        if (csub > csubx)   cout << "Something wrong" << endl;  
   //   }    
-    if (i % 500 == 0) cout << " --> " << i << " " << opt << " devs: " << devs*1.0/(i+1) << endl;
+  //  if (i % 500 == 0) cout << " --> " << i << " " << opt << " devs: " << devs*1.0/(i+1) << endl;
 
   }
   
