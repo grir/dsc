@@ -371,6 +371,15 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg){
 }
 
 
+///////////////////////////////////////////////////
+i64 Cnk(int n, int k){
+   i64 prod = 1;
+   for(int i=0;i<k;i++)
+      prod = (prod * (n-i)) /(i+1);
+   return prod; 
+}
+
+
 ////////////////////////////////////////////////////////////////
 
 int main(){
@@ -386,8 +395,11 @@ int main(){
   int M = 2 * n - 1;
   //int maxSub = 0;
   int opt = 0;
-  int numIter = 30;
+  int numIter = 1;
   int devs = 0;
+  for (int i=0;i<=32;i++ )
+     cout << Cnk(32,i) << " ";
+  cout << "------------------" <<   endl;
   for (int i = 0; i < numIter; i++){
      Graph gr(gen,n,M);
      Graph grx(n);
