@@ -14,7 +14,7 @@ using namespace std;
 
 class Graph{
    public:
-   
+   i64 subs;
    int n;        // number of vertices
    int* data;    // adj matrix
    int* edgeMap; // edge numbers: 0,..., C(n,2)-1
@@ -201,7 +201,7 @@ int getBitSum(i64 num){
    return sum;
 }
 
-int check4SubgraphsF(Graph& gr, int minDeg){
+int check4SubgraphsF(Graph& gr, int minDeg, Graph& subgr){
    
    int n = gr.n;
    int* graphD = gr.data; 
@@ -214,7 +214,7 @@ int check4SubgraphsF(Graph& gr, int minDeg){
         mul = mul << 1;
       }
    }
-   Graph subgr(n);  
+   //Graph subgr(n);  
    i64 subs = 0;
    i64 nsubs = (static_cast<i64>(1) << n) - 1;
    //cout << "Subs " << nsubs << endl;
@@ -245,8 +245,8 @@ int check4SubgraphsF(Graph& gr, int minDeg){
         }        
      }
      if (mins >= minDeg) {
-       subs = ii; 
        gr.deepCopy(subgr);
+       subgr.subs = ii; 
        if(minSubgr > numVerts) 
           minSubgr = numVerts;
        //cout << subs << " verts -> " << numVerts << endl;
@@ -256,7 +256,7 @@ int check4SubgraphsF(Graph& gr, int minDeg){
    }  
    
    
-   cout << subgr << subs << endl;
+   //cout << subgr << subs << endl;
    return minSubgr;   
    
 }
@@ -316,7 +316,7 @@ i64 toInt64(vector<bool>& v){
 ///////////////////////////////////////////////////////
 
 
-int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg){
+int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg, Graph& subgr){
    
    int n = gr.n;
    int* graph = gr.data; 
@@ -334,7 +334,6 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg){
         degrees[ i ] += graph[i * n + j];
    }
    i64 subs = 0;
-   Graph subgr(n);
    while ( true ){
       vector<int> minList;
       getMins(degrees, avaible, minList);
@@ -350,8 +349,8 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg){
       // update min subgraph:
       if ((degrees[ v ] >= minDeg) && (numAvaible < minSubgr)){
          minSubgr = numAvaible;
-         subs = toInt64(avaible);
          gr.deepCopy(subgr);
+         subgr.subs = toInt64(avaible);
       }   
       
       // remove from data the vertex v:
@@ -364,7 +363,7 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg){
       updateDegrees(graph, degrees); 
       
    }
-   cout << subgr << " " << subs << endl; 
+   //cout << subgr << " " << subs << endl; 
    
    return minSubgr;   
    
@@ -391,30 +390,52 @@ int main(){
   mt19937_64 gen(seed);
   setBitSums();
   cout << "Sums done " << endl;
-  int n = 6;
+  int n = 25;
   int M = 2 * n - 1;
   //int maxSub = 0;
   int opt = 0;
-  int numIter = 1;
+  int numIter = 20;
   int devs = 0;
-  for (int i=0;i<=32;i++ )
-     cout << Cnk(32,i) << " ";
-  cout << "------------------" <<   endl;
+  /*for (int i=0;i<=32;i++ )
+     cout << Cnk(32,i) << " ";*/
+     
+  //cout << "------------------" <<   endl;
   for (int i = 0; i < numIter; i++){
+
      Graph gr(gen,n,M);
      Graph grx(n);
      gr.deepCopy(grx);
+
+     // for subgraphs:
+     Graph subgr(n);
+     Graph subgrx(n);
+     gr.deepCopy(subgr);
+     gr.deepCopy(subgrx);
+     
+     
 //      cout << gr << endl;  
-     int csub = check4SubgraphsF(gr, 3);
-     int csubx = heuristicCheck4Subgraphs(gen, grx, 3);
+
+     int csub = check4SubgraphsF(gr, 3, subgr);
+     int csubx = 
+        heuristicCheck4Subgraphs(gen, grx, 3, subgrx);
      
   //   if (csub > maxSub){
   //       maxSub = csub;
-     cout << "i :" << i << " Exact --> " << csub 
-          << " heuristic --> " << csubx << endl;
+  
+     if (csub == csubx)  { 
+        cout << i << endl;  
+        opt++;
+     }
+   /*  else {
+       cout << "------------------" <<   endl;
+       cout << "i :" << i << " Exact --> " << subgr << hex << subgr.subs << " " << dec << csub << endl;
+       cout << "heuristic --> " << subgrx << hex << subgrx.subs << " " << dec << csubx << endl;
+    }
+       */
        devs += (csubx - csub);
-       if (csub == csubx)   opt++;
+       
        if (csub > csubx)   cout << "Something wrong" << endl;  
+       
   //   }    
   //  if (i % 500 == 0) cout << " --> " << i << " " << opt << " devs: " << devs*1.0/(i+1) << endl;
 
