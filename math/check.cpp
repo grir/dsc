@@ -5,7 +5,7 @@
 #include <set>
 #include <vector>
 #include <algorithm>
-
+#include <immintrin.h>
 
 
 #define i64 long long
@@ -80,7 +80,7 @@ class Graph{
              if ((degs[i] + degs[j]) == 6) {
                v1 = i; v2 = j;           
              };           
-             if ((degs[i] + degs[j]) == 7) {
+             if ((degs[i] + degs[j]) == 8) {
                v3 = i; v4 = j;           
              };           
           }   
@@ -152,6 +152,27 @@ class Graph{
         
         
    }
+   ///////////////////////////////////////////////
+   void randomize(mt19937_64& gen, int numEdges){
+       
+     //unsigned long long  int  val;
+     //cout << _rdrand64_step(&val) << endl; 
+     int ns = n * n;
+     uniform_int_distribution<int> rnde(0,ns - 1);
+     for(int i=0;i<numEdges;i++){
+         // choose r. edge
+         int p1 = 0;         
+         while (data[p]==0)
+            p1 = rnde(gen);
+         // choose a place for new edge           
+     
+     
+     }
+       
+     
+   
+   }
+   
    ///////////////////////////////////////////////
  
    friend ostream& operator<<(ostream& out, Graph& gr);
@@ -451,11 +472,11 @@ int main(){
   mt19937_64 gen(seed);
   setBitSums();
   cout << "Sums done " << endl;
-  int n = 25;
+  int n = 28;
   int M = 2 * n - 1;
   //int maxSub = 0;
   int opt = 0;
-  int numIter = 1000;
+  int numIter = 100;
   int devs = 0;
   /*for (int i=0;i<=32;i++ )
      cout << Cnk(32,i) << " ";*/
@@ -464,6 +485,7 @@ int main(){
   for (int i = 0; i < numIter; i++){
 
      Graph gr(gen,n, Graph::RegularGraphs::R3_0);
+     gr.randomize(gen, 3);
      Graph grx(n);
      gr.deepCopy(grx);
 
