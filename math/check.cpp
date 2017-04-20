@@ -14,6 +14,7 @@ using namespace std;
 
 class Graph{
    public:
+   enum RegularGraphs { R3_0 = 0, R3_1 = 1};
    i64 subs;
    int n;        // number of vertices
    int* data;    // adj matrix
@@ -42,6 +43,60 @@ class Graph{
    Graph(int n){ 
       initByN(n);
    }
+
+
+   ///////////////////////////////////////////////
+   Graph(mt19937_64& gen, int n, RegularGraphs cls){ // random regular (M<-2n-1)
+      initByN(n);
+      // K5:
+      for(int i=0;i<5;i++)
+        for(int j=i+1;j<5;j++)
+          data[i * n + j] = data[j * n + i] = 1;
+          
+      // minus one edge
+      data[4] = data[4 * n] = 0;
+      
+      // find v. with deg 3:
+      //int sm = 2 * n; 
+      int v0 = 5;
+
+      while (v0 < n){
+
+        int degs[n];
+        
+        for(int i=0;i<n;i++){
+          int d = 0;
+          for(int j=0;j<n;j++){
+             d += data[i * n + j];
+          }
+          degs[i] = d;
+                
+        } 
+
+
+        int v1,v2, v3, v4;
+        for(int i=0; i<n;i++){
+           for(int j=i+1; j<n;j++){
+             if ((degs[i] + degs[j]) == 6) {
+               v1 = i; v2 = j;           
+             };           
+             if ((degs[i] + degs[j]) == 7) {
+               v3 = i; v4 = j;           
+             };           
+          }   
+        }     
+        
+        data[v0 * n + v1] = data[v1 * n + v0] = 1;  
+        data[v0 * n + v2] = data[v2 * n + v0] = 1;  
+        data[v3 * n + v4] = data[v4 * n + v3] = 0;  
+        data[v3 * n + v0] = data[v0 * n + v3] = 1;  
+      
+        v0++;
+      }
+          
+   }
+
+
    ///////////////////////////////////////////////
    Graph(mt19937_64& gen, int n, int M){ // random GnM
       initByN(n);
@@ -370,6 +425,12 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg, Graph& subg
 }
 
 
+
+
+
+
+
+
 ///////////////////////////////////////////////////
 i64 Cnk(int n, int k){
    i64 prod = 1;
@@ -394,7 +455,7 @@ int main(){
   int M = 2 * n - 1;
   //int maxSub = 0;
   int opt = 0;
-  int numIter = 20;
+  int numIter = 1000;
   int devs = 0;
   /*for (int i=0;i<=32;i++ )
      cout << Cnk(32,i) << " ";*/
@@ -402,7 +463,7 @@ int main(){
   //cout << "------------------" <<   endl;
   for (int i = 0; i < numIter; i++){
 
-     Graph gr(gen,n,M);
+     Graph gr(gen,n, Graph::RegularGraphs::R3_0);
      Graph grx(n);
      gr.deepCopy(grx);
 
@@ -416,25 +477,24 @@ int main(){
 //      cout << gr << endl;  
 
      int csub = check4SubgraphsF(gr, 3, subgr);
-     int csubx = 
-        heuristicCheck4Subgraphs(gen, grx, 3, subgrx);
+    // int csubx = heuristicCheck4Subgraphs(gen, grx, 3, subgrx);
      
   //   if (csub > maxSub){
   //       maxSub = csub;
   
-     if (csub == csubx)  { 
-        cout << i << endl;  
-        opt++;
-     }
+ //    if (csub == csubx)  { 
+     cout << i << ", " << csub << endl;  
+     opt++;
+ //    }
    /*  else {
        cout << "------------------" <<   endl;
        cout << "i :" << i << " Exact --> " << subgr << hex << subgr.subs << " " << dec << csub << endl;
        cout << "heuristic --> " << subgrx << hex << subgrx.subs << " " << dec << csubx << endl;
     }
        */
-       devs += (csubx - csub);
+//       devs += (csubx - csub);
        
-       if (csub > csubx)   cout << "Something wrong" << endl;  
+//       if (csub > csubx)   cout << "Something wrong" << endl;  
        
   //   }    
   //  if (i % 500 == 0) cout << " --> " << i << " " << opt << " devs: " << devs*1.0/(i+1) << endl;
