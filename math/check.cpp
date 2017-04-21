@@ -473,11 +473,11 @@ int main(){
   mt19937_64 gen(seed);
   setBitSums();
   //cout << "Sums done " << endl;
-  int n = 10;
+  int n = 15;
   int M = 2 * n - 1;
   //int maxSub = 0;
   int opt = 0;
-  int numIter = 100000;
+  int numIter = 1000000;
   int devs = 0;
   /*for (int i=0;i<=32;i++ )
      cout << Cnk(32,i) << " ";*/
@@ -502,14 +502,18 @@ int main(){
 //      cout << gr << endl;  
 
      int csub = check4SubgraphsF(gr, 3, subgr);
-    // int csubx = heuristicCheck4Subgraphs(gen, grx, 3, subgrx);
+     
+    //int csubx = heuristicCheck4Subgraphs(gen, grx, 3, subgrx);
      
   //   if (csub > maxSub){
   //       maxSub = csub;
   
-     if (csub == (n - 1))   
-        cout << i << ", " << csub << endl 
-        << hex << subgr.subs << endl << subgr;  
+     if (csub == (n - 3))   
+        cout << dec << i << ", " << csub << endl; 
+       // <<", " << csubx 
+      //  << endl << hex << subgr.subs << endl
+      //   << subgr  
+         ;
      opt++;
  //    }
    /*  else {
@@ -523,7 +527,7 @@ int main(){
 //       if (csub > csubx)   cout << "Something wrong" << endl;  
        
   //   }    
-  //  if (i % 500 == 0) cout << " --> " << i << " " << opt << " devs: " << devs*1.0/(i+1) << endl;
+    if (i % 50000 == 0) cout << " --> " << i <<  endl;
 
   }
   
