@@ -118,9 +118,7 @@ class Graph{
         temp[rn] = t;
         //cout << "-->" << temp[i] << endl;
       }
-
-
-      
+     
       for(int i = 0; i < M; i++)   
          data[ edgeMap[ temp[ i ] ] ] = 1;  
      
@@ -152,7 +150,9 @@ class Graph{
         
         
    }
+   
    ///////////////////////////////////////////////
+   
    void randomize(mt19937_64& gen, int numEdges){
        
      //unsigned long long  int  val;
@@ -162,14 +162,21 @@ class Graph{
      for(int i=0;i<numEdges;i++){
          // choose r. edge
          int p1 = 0;         
-         while (data[p]==0)
+         while (data[ p1 ] == 0)
             p1 = rnde(gen);
          // choose a place for new edge           
-     
-     
+         int p2 = 0;         
+         while ((data[ p2 ] != 0) || ((p2 % n) == (p2 / n)))
+            p2 = rnde(gen);
+         
+         int i1 = p1 / n;
+         int i2 = p2 / n;
+         int j1 = p1 % n;
+         int j2 = p2 % n;
+         
+         data[i1*n+j1] = data[j1*n+i1] = 0;       
+         data[i2*n+j2] = data[j2*n+i2] = 1;       
      }
-       
-     
    
    }
    
@@ -396,7 +403,7 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg, Graph& subg
    
    int n = gr.n;
    int* graph = gr.data; 
-   int minSubgr = n+1;
+   int minSubgr = n + 1;
    // (find degrees)   
    vector<int> degrees;
    vector<bool> avaible;
@@ -445,14 +452,8 @@ int heuristicCheck4Subgraphs(mt19937_64& gen, Graph& gr, int minDeg, Graph& subg
    
 }
 
-
-
-
-
-
-
-
 ///////////////////////////////////////////////////
+
 i64 Cnk(int n, int k){
    i64 prod = 1;
    for(int i=0;i<k;i++)
@@ -471,12 +472,12 @@ int main(){
   
   mt19937_64 gen(seed);
   setBitSums();
-  cout << "Sums done " << endl;
-  int n = 28;
+  //cout << "Sums done " << endl;
+  int n = 10;
   int M = 2 * n - 1;
   //int maxSub = 0;
   int opt = 0;
-  int numIter = 100;
+  int numIter = 100000;
   int devs = 0;
   /*for (int i=0;i<=32;i++ )
      cout << Cnk(32,i) << " ";*/
@@ -484,8 +485,10 @@ int main(){
   //cout << "------------------" <<   endl;
   for (int i = 0; i < numIter; i++){
 
-     Graph gr(gen,n, Graph::RegularGraphs::R3_0);
-     gr.randomize(gen, 3);
+     //Graph gr(gen,n, Graph::RegularGraphs::R3_0);
+     Graph gr(gen,n, M);
+
+     //gr.randomize(gen, 20);
      Graph grx(n);
      gr.deepCopy(grx);
 
@@ -504,8 +507,9 @@ int main(){
   //   if (csub > maxSub){
   //       maxSub = csub;
   
- //    if (csub == csubx)  { 
-     cout << i << ", " << csub << endl;  
+     if (csub == (n - 1))   
+        cout << i << ", " << csub << endl 
+        << hex << subgr.subs << endl << subgr;  
      opt++;
  //    }
    /*  else {
