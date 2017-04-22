@@ -5,12 +5,15 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+#include <utility>
 #include <immintrin.h>
+
 
 
 #define i64 long long
 using namespace std;
 
+typedef pair<int,int> Edge;
 
 class Graph{
    public:
@@ -39,11 +42,20 @@ class Graph{
             e++;
          }   
    }
+   
    ///////////////////////////////////////////////
    Graph(int n){ 
       initByN(n);
    }
-
+   
+   ////////////////////////////////////////////////
+   Graph(int n, vector<Edge>& edges){ 
+      initByN(n);
+      for(auto ed : edges){
+         data[ed.first * n + ed.second] = 1;
+         data[ed.first + ed.second * n] = 1;
+      }
+   }
 
    ///////////////////////////////////////////////
    Graph(mt19937_64& gen, int n, RegularGraphs cls){ // random regular (M<-2n-1)
