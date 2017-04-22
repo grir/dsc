@@ -475,9 +475,49 @@ i64 Cnk(int n, int k){
 
 
 ////////////////////////////////////////////////////////////////
+void twoLayers(int n, int numEdges, vector<Edge>& ed){
+    if (n < 6) throw "n must be greater than 5";
+    int n12 = n / 2 + n % 2;
+    int n22 = n / 2;
+    int ne = 0;
+    for(int i = 0; i < n12; i++){
+       ed.push_back(Edge(i,i + 1));
+       ne++;
+       for (int j = 0;j < 3;j++){
+          ed.push_back(Edge(i,(i + j) % n22 + n12));
+          //cout 
+          ne++;
+          if(ne >= numEdges) return;
+       }
+    }
+    
+    
+}
+
+////////////////////////////////////////////////////////////////
+void threeLayers(int n, int numEdges, vector<Edge>& ed){
+    if (n % 3 != 0) throw "n must be divisible by 3";
+    int n3 = n / 3;
+    int ne = 0;
+    for(int i = 0; i < n3; i++){
+       for (int j = 0;j < 3;j++){
+          ed.push_back(Edge(i,(i + j) % n3 + n3));
+          ne++;
+          if(ne >= numEdges) return;
+
+          ed.push_back(Edge(i + n3,(i + j) % n3 + 2 * n3));
+          ne++;
+          if(ne >= numEdges) return;
+       }
+    }
+    
+    
+}
+
+////////////////////////////////////////////////////////////////
 
 int main(){
-
+  vector<Edge> ed; 
   //Graph gr("gr10.dat");
   //cout << check4Subgraphs(gr, 3) << endl;
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -485,11 +525,12 @@ int main(){
   mt19937_64 gen(seed);
   setBitSums();
   //cout << "Sums done " << endl;
-  int n = 15;
+  int n = 9;
   int M = 2 * n - 1;
+  threeLayers(n, M, ed);
   //int maxSub = 0;
   int opt = 0;
-  int numIter = 1000000;
+  int numIter = 1;
   int devs = 0;
   /*for (int i=0;i<=32;i++ )
      cout << Cnk(32,i) << " ";*/
@@ -498,8 +539,8 @@ int main(){
   for (int i = 0; i < numIter; i++){
 
      //Graph gr(gen,n, Graph::RegularGraphs::R3_0);
-     Graph gr(gen,n, M);
-
+     //Graph gr(gen,n, M);
+     Graph gr(n, ed); 
      //gr.randomize(gen, 20);
      Graph grx(n);
      gr.deepCopy(grx);
@@ -520,8 +561,8 @@ int main(){
   //   if (csub > maxSub){
   //       maxSub = csub;
   
-     if (csub == (n - 3))   
-        cout << dec << i << ", " << csub << endl; 
+     //if (csub == (n - 3))   
+        cout << dec << i <<  hex << subgr.subs << endl << gr << csub << endl; 
        // <<", " << csubx 
       //  << endl << hex << subgr.subs << endl
       //   << subgr  
