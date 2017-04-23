@@ -508,9 +508,34 @@ void threeLayers(int n, int numEdges, vector<Edge>& ed){
           ed.push_back(Edge(i + n3,(i + j) % n3 + 2 * n3));
           ne++;
           if(ne >= numEdges) return;
+          
+          ed.push_back(Edge((i + j) % n3, i + 2 * n3));
+          ne++;
+          if(ne >= numEdges) return;
        }
     }
     
+    
+}
+////////////////////////////////////////////////////////////////
+void triangles(int n, int numEdges, vector<Edge>& ed){
+    if (n % 3 != 0) throw "n must be divisible by 3";
+    int n3 = n / 3;
+    int ne = 0;
+    for(int i = 0; i < n; i += 3){
+          ed.push_back(Edge(i, i+1));
+          ed.push_back(Edge(i+1, i+2));
+          ed.push_back(Edge(i, i+2));
+    }
+
+    for(int i = 0; i < (n-3); i++){
+          ed.push_back(Edge(i, i+3));
+          ed.push_back(Edge(i+1, i+4));
+          ed.push_back(Edge(i+2, i+5));
+    }
+    
+    ed.push_back(Edge(0, 4));
+    ed.push_back(Edge(6, 10));
     
 }
 
@@ -525,9 +550,9 @@ int main(){
   mt19937_64 gen(seed);
   setBitSums();
   //cout << "Sums done " << endl;
-  int n = 9;
+  int n = 24;
   int M = 2 * n - 1;
-  threeLayers(n, M, ed);
+  triangles(n, M, ed);
   //int maxSub = 0;
   int opt = 0;
   int numIter = 1;
